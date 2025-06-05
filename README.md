@@ -1,6 +1,6 @@
 # Azure Files mit Private Endpoint - Terraform Infrastructure
 
-## 🎯 Use Case
+## Use Case
 
 Dieses Projekt implementiert eine **sichere Azure Files-Lösung** mit Private Endpoints in einem geschützten Netzwerk. Die Infrastruktur ermöglicht sicheren Dateizugriff ohne Exposition zum Internet.
 
@@ -11,7 +11,7 @@ Dieses Projekt implementiert eine **sichere Azure Files-Lösung** mit Private En
 - **Compliance-konforme** Lösung für sensible Daten
 - **Skalierbare Architektur** für Enterprise-Umgebungen
 
-## 🏗️ Architektur
+## Architektur
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -38,7 +38,7 @@ Dieses Projekt implementiert eine **sichere Azure Files-Lösung** mit Private En
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 📁 Projekt-Struktur
+## Projekt-Struktur
 
 ```
 azureFileshare/
@@ -68,19 +68,19 @@ azureFileshare/
 └── README.md                   # Diese Dokumentation
 ```
 
-## 🧪 Lokales Testing (ohne Azure-Berechtigungen)
+## Lokales Testing (ohne Azure-Berechtigungen)
 
 Dieses Projekt kann vollständig lokal getestet werden, um die Terraform-Konfiguration zu validieren, ohne tatsächlich Azure-Ressourcen zu erstellen.
 
-### 🔍 **Warum lokales Testing?**
+### **Warum lokales Testing?**
 
-- ✅ **Syntax-Validierung** ohne Cloud-Zugriff
-- ✅ **Module-Struktur prüfen** vor Deployment
-- ✅ **Entwicklungszeit sparen** durch frühe Fehlererkennung
-- ✅ **CI/CD Pipeline Integration** für Code-Quality-Checks
-- ✅ **Kosten vermeiden** durch Validierung ohne Ressourcen-Erstellung
+-  **Syntax-Validierung** ohne Cloud-Zugriff
+-  **Module-Struktur prüfen** vor Deployment
+-  **Entwicklungszeit sparen** durch frühe Fehlererkennung
+-  **CI/CD Pipeline Integration** für Code-Quality-Checks
+-  **Kosten vermeiden** durch Validierung ohne Ressourcen-Erstellung
 
-### 🛠️ **Kompletter Lokaler Test**
+### **Kompletter Lokaler Test**
 
 ```bash
 # Kompletten Test-Suite ausführen
@@ -110,9 +110,9 @@ terraform plan -input=false
 echo "=== Test abgeschlossen ==="
 ```
 
-### 📊 **Erwartete Test-Ergebnisse**
+### **Erwartete Test-Ergebnisse**
 
-#### ✅ **Erfolgreiche Outputs:**
+#### **Erfolgreiche Outputs:**
 
 ```bash
 # Syntax-Validierung
@@ -134,7 +134,7 @@ Providers required by configuration:
 Plan: 8 to add, 0 to change, 0 to destroy.
 ```
 
-#### ⚠️ **Erwartete Warnings:**
+#### **Erwartete Warnings:**
 
 ```bash
 # Code-Formatierung (optional zu beheben)
@@ -145,7 +145,7 @@ terraform fmt -write=true ../../**/*.tf
 Error: AuthorizationFailed
 ```
 
-### 🔧 **Einzelne Test-Schritte**
+### **Einzelne Test-Schritte**
 
 #### **1. Syntax-Validierung**
 
@@ -194,7 +194,7 @@ terraform show test.tfplan
 # Generiert: Deployment-Plan ohne Ausführung
 ```
 
-### 🎯 **Test-Integration in Development Workflow**
+### **Test-Integration in Development Workflow**
 
 #### **Git Pre-Commit Hook**
 
@@ -204,7 +204,7 @@ terraform show test.tfplan
 cd environments/dev
 terraform fmt -check -recursive ../../ || exit 1
 terraform validate || exit 1
-echo "✅ Terraform validation passed"
+echo "Terraform validation passed"
 ```
 
 #### **CI/CD Pipeline Integration**
@@ -238,7 +238,7 @@ steps:
 }
 ```
 
-### 🏆 **Test-Quality Gates**
+### **Test-Quality Gates**
 
 | Test          | Zweck           | Erfolgs-Kriterium                           |
 | ------------- | --------------- | ------------------------------------------- |
@@ -248,7 +248,7 @@ steps:
 | **Providers** | Dependencies    | Korrekte Provider-Hierarchie                |
 | **Plan**      | Resource-Logik  | `Plan: X to add, 0 to change, 0 to destroy` |
 
-### 🚨 **Troubleshooting lokaler Tests**
+### **Troubleshooting lokaler Tests**
 
 #### **Häufige Probleme:**
 
@@ -280,7 +280,7 @@ steps:
    terraform fmt -recursive ../../
    ```
 
-## 🔧 Technische Spezifikationen
+## Technische Spezifikationen
 
 ### Netzwerk-Module
 
@@ -298,13 +298,13 @@ steps:
 
 ### Sicherheitsfeatures
 
-- ✅ **Netzwerk-Isolation**: Kein direkter Internet-Zugriff
-- ✅ **Private Endpoints**: Interne Azure-Konnektivität
-- ✅ **HTTPS Enforcement**: Verschlüsselter Datenverkehr
-- ✅ **Subnet Whitelisting**: Zugriffskontrolle auf Netzwerkebene
-- ✅ **Private DNS**: Interne Namensauflösung
+-  **Netzwerk-Isolation**: Kein direkter Internet-Zugriff
+-  **Private Endpoints**: Interne Azure-Konnektivität
+-  **HTTPS Enforcement**: Verschlüsselter Datenverkehr
+-  **Subnet Whitelisting**: Zugriffskontrolle auf Netzwerkebene
+-  **Private DNS**: Interne Namensauflösung
 
-## 🗂️ State Management
+## State Management
 
 Dieses Projekt unterstützt sowohl lokalen als auch remote State für maximale Flexibilität.
 
@@ -550,15 +550,11 @@ terraform {
 
 ## Best Practices
 
-- ✅ **Modulare Architektur** für Wiederverwendbarkeit
-- ✅ **Environment-Trennung** für sichere Deployments
-- ✅ **Version Pinning** für konsistente Builds
-- ✅ **Resource Tagging** für Cost Management
-- ✅ **Security-First** Design mit Private Endpoints
-- ✅ **Infrastructure as Code** für Nachvollziehbarkeit
-- ✅ **Lokales Testing** für schnelle Entwicklung
-- ✅ **Code-Quality Gates** in CI/CD Pipelines
-
----
-
-**Erstellt mit ❤️ für sichere Azure-Infrastruktur**
+-  **Modulare Architektur** für Wiederverwendbarkeit
+-  **Environment-Trennung** für sichere Deployments
+-  **Version Pinning** für konsistente Builds
+-  **Resource Tagging** für Cost Management
+-  **Security-First** Design mit Private Endpoints
+-  **Infrastructure as Code** für Nachvollziehbarkeit
+-  **Lokales Testing** für schnelle Entwicklung
+-  **Code-Quality Gates** in CI/CD Pipelines
