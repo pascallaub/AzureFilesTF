@@ -16,25 +16,25 @@ Dieses Projekt implementiert eine **sichere Azure Files-Lösung** mit Private En
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                 Azure Subscription                      │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │            Resource Group                           │ │
-│  │  ┌─────────────────┐    ┌─────────────────────────┐ │ │
-│  │  │   Virtual Network│    │   Storage Account       │ │ │
-│  │  │   10.0.0.0/16   │    │   - File Share (100GB) │ │ │
-│  │  │                 │    │   - LRS Replication    │ │ │
-│  │  │  ┌─────────────┐│    │   - HTTPS Only         │ │ │
-│  │  │  │Private Subnet││    └─────────────────────────┘ │ │
-│  │  │  │10.0.1.0/24  ││              │                │ │
-│  │  │  └─────────────┘│              │                │ │
-│  │  └─────────────────┘              │                │ │
-│  │           │                       │                │ │
-│  │           └───────Private Endpoint────┘            │ │
-│  │                                                     │ │
-│  │  ┌─────────────────────────────────────────────────┐ │ │
-│  │  │        Private DNS Zone                         │ │ │
-│  │  │    privatelink.file.core.windows.net           │ │ │
-│  │  └─────────────────────────────────────────────────┘ │ │
-│  └─────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │            Resource Group                           ││
+│  │   ┌─────────────────┐    ┌─────────────────────────┐││
+│  │   │  Virtual Network│    │   Storage Account       │││
+│  │   │   10.0.0.0/16   │    │   - File Share (100GB)  │││
+│  │   │                 │    │   - LRS Replication     │││
+│  │   │  ┌─────────────┐│    │   - HTTPS Only          │││
+│  │   │  │Private Subnet│    └─────────────────────────┘││
+│  │   │  │10.0.1.0/24  ││                 │             ││
+│  │   │  └─────────────┘│                 │             ││
+│  │   └─────────────────┘                 │             ││
+│  │           │                           │             ││
+│  │           └───────Private Endpoint────┘             ││
+│  │                                                     ││
+│  │  ┌─────────────────────────────────────────────────┐││
+│  │  │        Private DNS Zone                         │││
+│  │  │    privatelink.file.core.windows.net            │││
+│  │  └─────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -92,6 +92,107 @@ azureFileshare/
 -  **Subnet Whitelisting**: Zugriffskontrolle auf Netzwerkebene
 -  **Private DNS**: Interne Namensauflösung
 
+## State Management
+
+Dieses Projekt unterstützt sowohl lokalen als auch remote State für maximale Flexibilität.
+
+### Lokaler State (Standard - Development)
+
+**Aktuell aktiv** - Ideal für Development und Testing:
+
+```bash
+# Konfiguration: backend.tf ist auskommentiert
+# terraform {
+#   backend "azurerm" { ... }
+# }
+```
+
+**Vorteile:**
+
+-  **Sofort einsatzbereit** - Keine Backend-Setup erforderlich
+-  **Schnelle Entwicklung** - Kein Netzwerk-Overhead
+-  **Keine Berechtigungen** - Funktioniert ohne Backend-Zugriff
+-  **Offline-Fähigkeit** - Arbeiten ohne Internet möglich
+
+**Nachteile:**
+
+-  **Keine Team-Kollaboration** - State nur lokal verfügbar
+-  **Kein State-Locking** - Concurrent-Access Probleme möglich
+-  **Backup-Risiko** - State geht bei PC-Verlust verloren
+
+### Remote State (Production-Ready)
+
+**Für Produktionsumgebungen** - Aktivierung durch Auskommentieren:
+
+```hcl
+# In backend.tf aktivieren:
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "tfstate"
+    storage_account_name = "tfstatestorage"
+    container_name       = "statefiles"
+    key                  = "azurefiles/terraform.tfstate"
+  }
+}
+```
+
+**Vorteile:**
+
+-  **Team-Kollaboration** - Zentraler State für alle
+-  **State-Locking** - Verhindert Concurrent-Änderungen
+-  **Backup & Recovery** - Azure-native Redundanz
+-  **Audit-Trail** - Vollständige Änderungshistorie
+-  **CI/CD Integration** - Pipeline-freundlich
+
+**Setup-Schritte für Remote Backend:**
+
+```bash
+# 1. Backend-Infrastruktur erstellen
+az group create --name tfstate --location westeurope
+az storage account create \
+  --resource-group tfstate \
+  --name tfstatestorage \
+  --sku Standard_LRS \
+  --kind StorageV2
+
+az storage container create \
+  --name statefiles \
+  --account-name tfstatestorage
+
+# 2. Backend in backend.tf aktivieren (Kommentare entfernen)
+
+# 3. State migrieren
+terraform init -migrate-state
+```
+
+### State-Migration (Lokal ↔ Remote)
+
+**Von Lokal zu Remote:**
+
+```bash
+# 1. Remote Backend in backend.tf aktivieren
+# 2. Migration durchführen
+terraform init -migrate-state
+# 3. Bestätigen: "yes"
+```
+
+**Von Remote zu Lokal:**
+
+```bash
+# 1. Backend in backend.tf auskommentieren
+# 2. State lokal initialisieren
+terraform init -migrate-state
+# 3. Bestätigen: "yes"
+```
+
+### State-Strategien nach Umgebung
+
+| Environment     | State Type | Begründung                                    |
+| --------------- | ---------- | --------------------------------------------- |
+| **Development** | Lokal      | Schnelle Iteration, keine Team-Abhängigkeiten |
+| **Staging**     | Remote     | Team-Testing, CI/CD Integration               |
+| **Production**  | Remote     | Kritische Infrastruktur, Audit-Anforderungen  |
+
 ## Deployment
 
 ### Voraussetzungen
@@ -109,7 +210,7 @@ cd environments/dev
 # Azure Subscription ID setzen
 export ARM_SUBSCRIPTION_ID="your-subscription-id"
 
-# Terraform initialisieren
+# Terraform initialisieren (Lokaler State)
 terraform init
 
 # Deployment planen
@@ -128,7 +229,7 @@ cd environments/prod
 # Azure Subscription ID setzen
 export ARM_SUBSCRIPTION_ID="your-subscription-id"
 
-# Terraform initialisieren
+# Terraform initialisieren (Remote State empfohlen)
 terraform init
 
 # Deployment planen
@@ -136,28 +237,6 @@ terraform plan
 
 # Infrastructure erstellen
 terraform apply
-```
-
-## State Management
-
-### Lokaler State (Standard)
-
-- State wird lokal in `terraform.tfstate` gespeichert
-- Ideal für Development und Testing
-- Keine zusätzlichen Azure-Berechtigungen erforderlich
-
-### Remote State (Optional)
-
-```hcl
-# In backend.tf aktivieren:
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "tfstate"
-    storage_account_name = "tfstatestorage"
-    container_name       = "statefiles"
-    key                  = "azurefiles/terraform.tfstate"
-  }
-}
 ```
 
 ## Kostenabschätzung
@@ -168,6 +247,7 @@ terraform {
 | Private Endpoint               | ~6.50              |
 | Private DNS Zone               | ~0.45              |
 | VNet/Subnets                   | Kostenlos          |
+| **Remote State Backend**       | **~0.50**          |
 | **Total pro Environment**      | **~9-12**          |
 
 ## Monitoring & Management
@@ -209,8 +289,15 @@ sudo mount -t cifs //<storage-account>.file.core.windows.net/data /mnt/fileshare
    ```
 
 3. **State-Backend nicht verfügbar**
+
    ```
    Solution: Backend in backend.tf auskommentieren für lokalen State
+   ```
+
+4. **State-Lock Probleme**
+   ```bash
+   # Force-unlock (nur bei hängenden Locks)
+   terraform force-unlock <LOCK_ID>
    ```
 
 ## Anpassungen
@@ -235,6 +322,20 @@ resource "azurerm_storage_share" "share" {
 }
 ```
 
+### Backend für neue Umgebung
+
+```hcl
+# Eigener State-Key pro Environment
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "tfstate"
+    storage_account_name = "tfstatestorage"
+    container_name       = "statefiles"
+    key                  = "azurefiles/staging/terraform.tfstate"  # Umgebungs-spezifisch
+  }
+}
+```
+
 ## Best Practices
 
 -  **Modulare Architektur** für Wiederverwendbarkeit
@@ -243,6 +344,8 @@ resource "azurerm_storage_share" "share" {
 -  **Resource Tagging** für Cost Management
 -  **Security-First** Design mit Private Endpoints
 -  **Infrastructure as Code** für Nachvollziehbarkeit
+-  **Remote State** für Produktionsumgebungen
+-  **State-Backup** Strategien implementieren
 
 ## Support
 
@@ -251,4 +354,3 @@ Bei Fragen oder Problemen:
 1. Terraform-Dokumentation konsultieren
 2. Azure-Support kontaktieren
 3. Issue in diesem Repository erstellen
-
